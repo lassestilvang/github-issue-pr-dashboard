@@ -80,7 +80,7 @@ export async function fetchUserIssues(token: string, filters?: { status?: string
   const data = repo && repo !== 'all' ? (response.data as any).items : response.data;
 
   let issues = data.map((issue: any) => ({
-    repository: issue.repository?.name || 'unknown',
+    repository: repo && repo !== 'all' ? repo : (issue.repository?.name || 'unknown'),
     title: issue.title || 'No title',
     labels: (issue.labels || []).map((label: any) => typeof label === 'string' ? label : (label.name || 'unknown')),
     status: issue.state || 'unknown',
