@@ -2,7 +2,7 @@
 
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState, useMemo, useCallback, useRef, Suspense } from "react";
+import { useEffect, useState, useCallback, useRef, Suspense } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Dashboard from "@/components/Dashboard";
 import FilterBar from "@/components/FilterBar";

@@ -24,9 +24,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return token
     },
     async session({ session, token }) {
-      session.accessToken = token.accessToken as string
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (session as any).accessToken = token.accessToken as string
       // Fetch GitHub user login if not already present
-      if (token.accessToken && !session.user?.login) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      if (token.accessToken && !(session.user as any)?.login) {
         try {
           const response = await fetch('https://api.github.com/user', {
             headers: {
@@ -35,7 +37,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           })
           if (response.ok) {
             const userData = await response.json()
-            session.user.login = userData.login
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const user = session.user as any
+            user.login = userData.login
           }
         } catch (error) {
           console.error('Failed to fetch GitHub user data:', error)

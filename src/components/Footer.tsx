@@ -3,7 +3,7 @@ import Image from "next/image";
 export default function Footer() {
   return (
     <footer className="border-t border-border mt-8 py-4 text-center text-muted-foreground">
-      <p>
+      <p className="ml-4 mr-4">
         © 2025{" "}
         <a
           href="https://lassestilvang.com"

@@ -5,7 +5,8 @@ export async function GET() {
   const session = await auth()
 
   try {
-    const repositories = await fetchUserRepositories(session?.accessToken)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const repositories = await fetchUserRepositories((session as any)?.accessToken)
     return Response.json({ repositories })
   } catch {
     return Response.json({ error: 'Failed to fetch repositories' }, { status: 500 })

@@ -18,13 +18,13 @@ export default function LoginPage() {
 
   if (status === "loading") {
     return (
-      <div className="min-h-96 m-6 flex items-center justify-center bg-background">
+      <div className="min-h-140 p-6 flex items-center justify-center bg-background">
         <Loader2 className="animate-spin" />
       </div>
     );
   }
   return (
-    <div className="min-h-96 flex items-center justify-center bg-background">
+    <div className="min-h-140 flex items-center justify-center bg-background">
       <div className="max-w-md w-full space-y-8">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-foreground">

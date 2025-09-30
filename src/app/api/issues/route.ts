@@ -14,7 +14,8 @@ export async function GET(request: Request) {
   const pageSize = url.searchParams.get('pageSize') || '30'
 
   try {
-    const result = await fetchUserIssues(session?.accessToken, { status, role, repo, type, search, page: parseInt(page), pageSize: parseInt(pageSize), user: session?.user?.login })
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const result = await fetchUserIssues((session as any)?.accessToken, { status, role, repo, type, search, page: parseInt(page), pageSize: parseInt(pageSize), user: (session?.user as any)?.login })
     return Response.json(result)
   } catch (error) {
     console.error('Error fetching issues:', error)

@@ -1,9 +1,39 @@
 import { Geist, Geist_Mono } from "next/font/google";
+import type { Metadata } from "next";
 import { Providers } from "./providers";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import "./globals.css";
-import { StrictMode } from "react";
+
+export const metadata: Metadata = {
+  title: "GitHub Issue PR Dashboard - Manage Issues and Pull Requests",
+  description: "A comprehensive dashboard for tracking, filtering, and managing GitHub issues and pull requests. Streamline your development workflow with real-time insights and analytics.",
+  keywords: ["GitHub", "issues", "pull requests", "dashboard", "development", "project management"],
+  authors: [{ name: "GitHub Issue PR Dashboard Team" }],
+  robots: "index, follow",
+  openGraph: {
+    images: "/og-image.png",
+    url: "https://github-issue-pr-dashboard.vercel.app",
+    type: "website",
+    siteName: "GitHub Issue PR Dashboard",
+  },
+  twitter: {
+    card: "summary_large_image",
+  },
+  alternates: {
+    canonical: "https://github-issue-pr-dashboard.vercel.app",
+  },
+  icons: {
+    icon: [
+      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+    ],
+    apple: "/apple-touch-icon.png",
+    other: [
+      { rel: "manifest", url: "/site.webmanifest" },
+    ],
+  },
+};
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -22,26 +52,6 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning={true}>
-      <head>
-        <link
-          rel="apple-touch-icon"
-          sizes="180x180"
-          href="/apple-touch-icon.png"
-        />
-        <link
-          rel="icon"
-          type="image/png"
-          sizes="32x32"
-          href="/favicon-32x32.png"
-        />
-        <link
-          rel="icon"
-          type="image/png"
-          sizes="16x16"
-          href="/favicon-16x16.png"
-        />
-        <link rel="manifest" href="/site.webmanifest" />
-      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >

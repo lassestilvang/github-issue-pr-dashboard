@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useSession, signIn, signOut } from "next-auth/react";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
@@ -11,14 +12,22 @@ export default function Header() {
   const { data: session, status } = useSession();
   const { theme, setTheme } = useTheme();
 
+  if (session) {
+    console.log('session.user:', session.user);
+  }
+
   return (
     <header className="bg-background shadow-sm border-b">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex-shrink-0">
-            <Link href="/">
-              <h1 className="text-xl font-semibold text-foreground">
-                Issue & PR Dashboard
+            <Link href="/" className="flex items-center space-x-2">
+              <Image src="/logo.png" alt="Logo" width={32} height={32} className="rounded-sm" />
+              <h1 className="text-xl font-semibold text-foreground hidden sm:block">
+                GitHub Issue & PR Dashboard
+              </h1>
+              <h1 className="text-xl font-semibold text-foreground sm:hidden xs:block">
+                GitHub Issue & PR
               </h1>
             </Link>
           </div>
@@ -39,7 +48,7 @@ export default function Header() {
             ) : session ? (
               <div className="flex items-center space-x-4">
                 <a
-                  href={`https://github.com/${session.user?.login || ""}`}
+                  href={`https://github.com/${(session.user as { login?: string })?.login || ""}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
@@ -53,7 +62,7 @@ export default function Header() {
                       {session.user?.name?.charAt(0) || "U"}
                     </AvatarFallback>
                   </Avatar>
-                  <span className="text-sm font-medium text-muted-foreground">
+                  <span className="text-sm font-medium text-muted-foreground hidden sm:inline-block">
                     {session.user?.name}
                   </span>
                 </a>
