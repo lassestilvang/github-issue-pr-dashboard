@@ -10,11 +10,23 @@ export interface IssuePR {
   type: 'issue' | 'pull_request';
   html_url: string;
 }
-
-export async function fetchUserIssues(token: string, filters?: { status?: string; role?: string; repo?: string; page?: number }): Promise<{ issues: IssuePR[], pagination: { hasNext: boolean, hasPrev: boolean, nextPage?: number, prevPage?: number } }> {
+export async function fetchUserRepositories(token: string): Promise<string[]> {
   const octokit = new Octokit({ auth: token });
 
-  const { status, role, repo, page = 1 } = filters || {};
+  const response = await octokit.repos.listForAuthenticatedUser({
+    per_page: 100, // Fetch up to 100 repos
+    sort: 'updated',
+    direction: 'desc'
+  });
+
+  return response.data.map(repo => repo.name);
+}
+
+
+export async function fetchUserIssues(token: string, filters?: { status?: string; role?: string; repo?: string; page?: number; type?: string }): Promise<{ issues: IssuePR[], pagination: { hasNext: boolean, hasPrev: boolean, nextPage?: number, prevPage?: number } }> {
+  const octokit = new Octokit({ auth: token });
+
+  const { status, role, repo, page = 1, type } = filters || {};
 
   let filter = 'all';
   if (role === 'created') filter = 'created';
@@ -43,6 +55,10 @@ export async function fetchUserIssues(token: string, filters?: { status?: string
     type: (issue.pull_request ? 'pull_request' : 'issue') as 'issue' | 'pull_request',
     html_url: issue.html_url
   }));
+
+  if (type && type !== 'all') {
+    issues = issues.filter(issue => issue.type === type);
+  }
 
   if (repo && repo !== 'all') {
     issues = issues.filter(issue => issue.repository === repo);
