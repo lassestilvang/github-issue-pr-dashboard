@@ -75,6 +75,7 @@ export default function Home() {
       if (filters.role !== "all") params.append("role", filters.role);
       if (filters.repo !== "all") params.append("repo", filters.repo);
       if (filters.type !== "all") params.append("type", filters.type);
+      if (filters.search) params.append("search", filters.search);
       params.append("page", filters.page.toString());
       const response = await fetch(`/api/issues?${params}`);
       if (response.ok) {
@@ -120,11 +121,6 @@ export default function Home() {
     // }
   }, [session, status, router, filters, allRepos.length, fetchIssues, fetchRepositories]);
 
-  const filteredIssues = useMemo(() => {
-    return issues.filter((issue) =>
-      issue.title.toLowerCase().includes(filters.search.toLowerCase())
-    );
-  }, [issues, filters.search]);
 
   const handlePageChange = (newPage: number) => {
     setFilters({ ...filters, page: newPage });
@@ -156,8 +152,8 @@ export default function Home() {
         </div>
       ) : (
         <>
-          <Dashboard issues={filteredIssues} loading={loading} />
-          {filteredIssues.length > 0 && pagination.hasNext && (
+          <Dashboard issues={issues} loading={loading} />
+          {issues.length > 0 && pagination.hasNext && (
             <div className="flex justify-center items-center gap-4 p-4">
               <Button
                 variant="outline"

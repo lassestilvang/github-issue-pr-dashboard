@@ -51,10 +51,10 @@ export async function fetchUserRepositories(token: string): Promise<string[]> {
 }
 
 
-export async function fetchUserIssues(token: string, filters?: { status?: string; role?: string; repo?: string; page?: number; pageSize?: number; type?: string; user?: string }): Promise<{ issues: IssuePR[], pagination: { hasNext: boolean, hasPrev: boolean, nextPage?: number, prevPage?: number } }> {
+export async function fetchUserIssues(token: string, filters?: { status?: string; role?: string; repo?: string; page?: number; pageSize?: number; type?: string; user?: string; search?: string }): Promise<{ issues: IssuePR[], pagination: { hasNext: boolean, hasPrev: boolean, nextPage?: number, prevPage?: number } }> {
   const octokit = new Octokit({ auth: token });
 
-  const { status, role, repo, page = 1, pageSize = 30, type } = filters || {};
+  const { status, role, repo, page = 1, pageSize = 30, type, search } = filters || {};
 
   // Mock data for testing
   if (process.env.NODE_ENV === 'development' && !token.startsWith('ghp_')) {
@@ -112,6 +112,14 @@ export async function fetchUserIssues(token: string, filters?: { status?: string
     if (type && type !== 'all') {
       filteredIssues = filteredIssues.filter(issue => issue.type === type);
     }
+    if (search) {
+      const searchLower = search.toLowerCase();
+      filteredIssues = filteredIssues.filter(issue =>
+        issue.title.toLowerCase().includes(searchLower) ||
+        issue.labels.some(label => label.toLowerCase().includes(searchLower)) ||
+        issue.repository.toLowerCase().includes(searchLower)
+      );
+    }
 
     // Simple pagination
     const startIndex = (page - 1) * pageSize;
@@ -131,12 +139,18 @@ export async function fetchUserIssues(token: string, filters?: { status?: string
 
   let response;
 
-  if (repo && repo !== 'all') {
-    // Get user login
-    const userResponse = await octokit.users.getAuthenticated();
-    const login = userResponse.data.login;
-    // Use search API for repo filtering
-    let q = `repo:${login}/${repo} `;
+  if (search || (repo && repo !== 'all')) {
+    // Get user login if needed
+    let login = '';
+    if ((repo && repo !== 'all') || (search && role)) {
+      const userResponse = await octokit.users.getAuthenticated();
+      login = userResponse.data.login;
+    }
+    // Use search API
+    let q = '';
+    if (search) {
+      q += `${search} in:title,body,comments `;
+    }
     if (role === 'created') {
       q += 'author:@me ';
     } else if (role === 'assigned') {
@@ -151,6 +165,9 @@ export async function fetchUserIssues(token: string, filters?: { status?: string
       q += 'is:open ';
     } else if (status === 'closed') {
       q += 'is:closed ';
+    }
+    if (repo && repo !== 'all') {
+      q += `repo:${login}/${repo} `;
     }
     response = await octokit.search.issuesAndPullRequests({
       q: q.trim(),
@@ -177,7 +194,7 @@ export async function fetchUserIssues(token: string, filters?: { status?: string
     });
   }
 
-  const data: GitHubIssue[] = repo && repo !== 'all' ? (response.data as { items: GitHubIssue[] }).items : response.data as GitHubIssue[];
+  const data: GitHubIssue[] = (search || (repo && repo !== 'all')) ? (response.data as { items: GitHubIssue[] }).items : response.data as GitHubIssue[];
 
   let issues = data.map((issue: GitHubIssue) => ({
     repository: repo && repo !== 'all' ? repo : (issue.repository?.name || 'unknown'),
