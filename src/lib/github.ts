@@ -9,6 +9,7 @@ interface GitHubIssue {
   pull_request?: unknown;
   html_url?: string;
   repository?: { name?: string };
+  repository_url?: string;
 }
 
 export interface IssuePR {
@@ -24,7 +25,7 @@ export interface IssuePR {
 
 export async function fetchUserRepositories(token: string): Promise<string[]> {
   // Mock data for testing
-  if (process.env.NODE_ENV === 'development' && !token.startsWith('ghp_')) {
+  if (!token || token === process.env.GITHUB_CLIENT_SECRET) {
     return [
       'github-issue-pr-dashboard',
       'react-app',
@@ -57,7 +58,7 @@ export async function fetchUserIssues(token: string, filters?: { status?: string
   const { status, role, repo, page = 1, pageSize = 30, type, search } = filters || {};
 
   // Mock data for testing
-  if (process.env.NODE_ENV === 'development' && !token.startsWith('ghp_')) {
+  if (!token || token === process.env.GITHUB_CLIENT_SECRET) {
     const mockIssues: IssuePR[] = [
       {
         repository: 'github-issue-pr-dashboard',
@@ -142,7 +143,7 @@ export async function fetchUserIssues(token: string, filters?: { status?: string
   if (search || (repo && repo !== 'all')) {
     // Get user login if needed
     let login = '';
-    if ((repo && repo !== 'all') || (search && role)) {
+    if (search || (repo && repo !== 'all')) {
       const userResponse = await octokit.users.getAuthenticated();
       login = userResponse.data.login;
     }
@@ -166,7 +167,9 @@ export async function fetchUserIssues(token: string, filters?: { status?: string
     } else if (status === 'closed') {
       q += 'is:closed ';
     }
-    if (repo && repo !== 'all') {
+    if (!repo || repo === 'all') {
+      q += `user:${login} `;
+    } else {
       q += `repo:${login}/${repo} `;
     }
     response = await octokit.search.issuesAndPullRequests({
@@ -196,16 +199,20 @@ export async function fetchUserIssues(token: string, filters?: { status?: string
 
   const data: GitHubIssue[] = (search || (repo && repo !== 'all')) ? (response.data as { items: GitHubIssue[] }).items : response.data as GitHubIssue[];
 
-  let issues = data.map((issue: GitHubIssue) => ({
-    repository: repo && repo !== 'all' ? repo : (issue.repository?.name || 'unknown'),
-    title: issue.title || 'No title',
-    labels: (issue.labels || []).map((label: string | { name?: string }) => typeof label === 'string' ? label : (label.name || 'unknown')),
-    status: issue.state || 'unknown',
-    createdAt: issue.created_at || '',
-    updatedAt: issue.updated_at || '',
-    type: (issue.pull_request ? 'pull_request' : 'issue') as 'issue' | 'pull_request',
-    html_url: issue.html_url || ''
-  }));
+  let issues = data.map((issue: GitHubIssue) => {
+    console.log('Issue data during mapping:', { repository: issue.repository, repository_url: issue.repository_url, title: issue.title, search: !!search });
+    const repoName = repo && repo !== 'all' ? repo : (issue.repository?.name || (issue.repository_url ? issue.repository_url.split('/').pop() : 'unknown'));
+    return {
+      repository: repoName,
+      title: issue.title || 'No title',
+      labels: (issue.labels || []).map((label: string | { name?: string }) => typeof label === 'string' ? label : (label.name || 'unknown')),
+      status: issue.state || 'unknown',
+      createdAt: issue.created_at || '',
+      updatedAt: issue.updated_at || '',
+      type: (issue.pull_request ? 'pull_request' : 'issue') as 'issue' | 'pull_request',
+      html_url: issue.html_url || ''
+    };
+  });
 
   if (type && type !== 'all') {
     issues = issues.filter((issue: IssuePR) => issue.type === type);

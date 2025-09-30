@@ -2,7 +2,7 @@
 
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState, useMemo, useCallback } from "react";
+import { useEffect, useState, useMemo, useCallback, useRef } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Dashboard from "@/components/Dashboard";
 import FilterBar from "@/components/FilterBar";
@@ -42,6 +42,17 @@ export default function Home() {
     nextPage?: number;
     prevPage?: number;
   }>({ hasNext: false, hasPrev: false });
+  const lastFetchedFilters = useRef<string>("");
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const debouncedSearchUpdate = useCallback((searchValue: string) => {
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+    searchTimeoutRef.current = setTimeout(() => {
+      setFilters((prev) => ({ ...prev, search: searchValue, page: 1 }));
+    }, 300);
+  }, []);
 
   // Parse URL params on mount to restore filters
   useEffect(() => {
@@ -49,24 +60,34 @@ export default function Home() {
     const role = searchParams.get("role") || "all";
     const repo = searchParams.get("repo") || "all";
     const type = searchParams.get("type") || "all";
-    setFilters((prev) => ({ ...prev, status, role, repo, type }));
+    const search = searchParams.get("search") || "";
+    const pageSize = parseInt(searchParams.get("pageSize") || "30");
+    setFilters((prev) => ({ ...prev, status, role, repo, type, search, pageSize }));
   }, [searchParams]);
 
-  // Update URL when filters change (excluding search and page)
+  // Update URL when filters change (excluding page)
   useEffect(() => {
     const params = new URLSearchParams();
     if (filters.status !== "all") params.set("status", filters.status);
     if (filters.role !== "all") params.set("role", filters.role);
     if (filters.repo !== "all") params.set("repo", filters.repo);
     if (filters.type !== "all") params.set("type", filters.type);
+    if (filters.search) params.set("search", filters.search);
+    if (filters.pageSize !== 30) params.set("pageSize", filters.pageSize.toString());
 
     const query = params.toString();
     const newUrl = query ? `?${query}` : window.location.pathname;
 
     router.replace(newUrl, { scroll: false });
-  }, [filters.status, filters.role, filters.repo, filters.type, router]);
+  }, [filters.status, filters.role, filters.repo, filters.type, filters.search, filters.pageSize, router]);
 
   const fetchIssues = useCallback(async () => {
+    const currentFiltersKey = JSON.stringify(filters);
+    if (lastFetchedFilters.current === currentFiltersKey) {
+      return;
+    }
+    lastFetchedFilters.current = currentFiltersKey;
+
     setLoading(true);
     setError(null);
     try {
@@ -77,6 +98,7 @@ export default function Home() {
       if (filters.type !== "all") params.append("type", filters.type);
       if (filters.search) params.append("search", filters.search);
       params.append("page", filters.page.toString());
+      params.append("pageSize", filters.pageSize.toString());
       const response = await fetch(`/api/issues?${params}`);
       if (response.ok) {
         const data: ApiResponse = await response.json();
@@ -110,15 +132,14 @@ export default function Home() {
 
   useEffect(() => {
     if (status === "loading") return; // Still loading
-    // Temporarily bypass authentication for testing
-    // if (!session) {
-    //   router.push("/login");
-    // } else {
+    if (!session) {
+      router.push("/login");
+    } else {
       fetchIssues();
       if (allRepos.length === 0) {
         fetchRepositories();
       }
-    // }
+    }
   }, [session, status, router, filters, allRepos.length, fetchIssues, fetchRepositories]);
 
 
@@ -135,14 +156,13 @@ export default function Home() {
     );
   }
 
-  // Temporarily bypass authentication for testing
-  // if (!session) {
-  //   return null; // Will redirect
-  // }
+  if (!session) {
+    return null; // Will redirect
+  }
 
   return (
     <div className="min-h-screen">
-      <FilterBar filters={filters} setFilters={setFilters} repos={allRepos} />
+      <FilterBar filters={filters} setFilters={setFilters} debouncedSearchUpdate={debouncedSearchUpdate} repos={allRepos} />
       {error ? (
         <div className="container mx-auto p-4">
           <div className="text-center text-red-500">

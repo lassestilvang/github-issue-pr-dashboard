@@ -1,14 +1,8 @@
 import { fetchUserIssues } from "@/lib/github"
+import { auth } from "@/lib/auth"
 
 export async function GET(request: Request) {
-  // Temporarily bypass authentication for testing
-  // const session = await auth()
-  // if (!session || !session.accessToken) {
-  //   return Response.json({ error: 'Unauthorized' }, { status: 401 })
-  // }
-
-  // Mock session for testing
-  const session = { accessToken: process.env.GITHUB_CLIENT_SECRET, user: { login: 'testuser' } }
+  const session = await auth()
 
   const url = new URL(request.url)
   const status = url.searchParams.get('status') || undefined
@@ -20,7 +14,7 @@ export async function GET(request: Request) {
   const pageSize = url.searchParams.get('pageSize') || '30'
 
   try {
-    const result = await fetchUserIssues(session.accessToken as string, { status, role, repo, type, search, page: parseInt(page), pageSize: parseInt(pageSize), user: session.user?.login })
+    const result = await fetchUserIssues(session?.accessToken, { status, role, repo, type, search, page: parseInt(page), pageSize: parseInt(pageSize), user: session?.user?.login })
     return Response.json(result)
   } catch (error) {
     console.error('Error fetching issues:', error)

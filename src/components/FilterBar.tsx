@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import {
   Select,
   SelectContent,
@@ -29,14 +30,22 @@ interface FilterBarProps {
     type: string;
     pageSize: number;
   }) => void;
+  debouncedSearchUpdate: (search: string) => void;
   repos: string[];
 }
 
 export default function FilterBar({
   filters,
   setFilters,
+  debouncedSearchUpdate,
   repos,
 }: FilterBarProps) {
+  const [localSearch, setLocalSearch] = useState(filters.search);
+
+  useEffect(() => {
+    setLocalSearch(filters.search);
+  }, [filters.search]);
+
   return (
     <div className="flex flex-col md:flex-row gap-4 p-4 border-b">
       <div className="mt-5">
@@ -44,10 +53,11 @@ export default function FilterBar({
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search issues/PRs..."
-            value={filters.search}
-            onChange={(e) =>
-              setFilters({ ...filters, search: e.target.value, page: 1 })
-            }
+            value={localSearch}
+            onChange={(e) => {
+              setLocalSearch(e.target.value);
+              debouncedSearchUpdate(e.target.value);
+            }}
             className="pl-8 w-full md:w-[250px]"
           />
         </div>
