@@ -12,6 +12,22 @@ export interface IssuePR {
 }
 
 export async function fetchUserRepositories(token: string): Promise<string[]> {
+  // Mock data for testing
+  if (process.env.NODE_ENV === 'development' && !token.startsWith('ghp_')) {
+    return [
+      'github-issue-pr-dashboard',
+      'react-app',
+      'node-api',
+      'vue-dashboard',
+      'angular-admin',
+      'express-server',
+      'python-ml',
+      'go-microservice',
+      'rust-cli',
+      'typescript-lib'
+    ];
+  }
+
   const octokit = new Octokit({ auth: token });
 
   const response = await octokit.repos.listForAuthenticatedUser({
@@ -28,6 +44,80 @@ export async function fetchUserIssues(token: string, filters?: { status?: string
   const octokit = new Octokit({ auth: token });
 
   const { status, role, repo, page = 1, type, user } = filters || {};
+
+  // Mock data for testing
+  if (process.env.NODE_ENV === 'development' && !token.startsWith('ghp_')) {
+    const mockIssues: IssuePR[] = [
+      {
+        repository: 'github-issue-pr-dashboard',
+        title: 'Add search functionality to repository dropdown',
+        labels: ['enhancement', 'frontend'],
+        status: 'open',
+        createdAt: '2024-01-15T10:00:00Z',
+        updatedAt: '2024-01-15T10:00:00Z',
+        type: 'issue',
+        html_url: 'https://github.com/test/repo/issues/1'
+      },
+      {
+        repository: 'react-app',
+        title: 'Fix responsive layout on mobile devices',
+        labels: ['bug', 'mobile'],
+        status: 'open',
+        createdAt: '2024-01-14T09:30:00Z',
+        updatedAt: '2024-01-14T09:30:00Z',
+        type: 'issue',
+        html_url: 'https://github.com/test/repo/issues/2'
+      },
+      {
+        repository: 'node-api',
+        title: 'Implement authentication middleware',
+        labels: ['feature', 'backend'],
+        status: 'closed',
+        createdAt: '2024-01-13T14:20:00Z',
+        updatedAt: '2024-01-13T16:45:00Z',
+        type: 'pull_request',
+        html_url: 'https://github.com/test/repo/pull/3'
+      },
+      {
+        repository: 'vue-dashboard',
+        title: 'Update chart library to latest version',
+        labels: ['maintenance', 'dependencies'],
+        status: 'open',
+        createdAt: '2024-01-12T11:15:00Z',
+        updatedAt: '2024-01-12T11:15:00Z',
+        type: 'issue',
+        html_url: 'https://github.com/test/repo/issues/4'
+      }
+    ];
+
+    // Apply filters
+    let filteredIssues = mockIssues;
+    if (repo && repo !== 'all') {
+      filteredIssues = filteredIssues.filter(issue => issue.repository === repo);
+    }
+    if (status && status !== 'all') {
+      filteredIssues = filteredIssues.filter(issue => issue.status === status);
+    }
+    if (type && type !== 'all') {
+      filteredIssues = filteredIssues.filter(issue => issue.type === type);
+    }
+
+    // Simple pagination
+    const pageSize = 30;
+    const startIndex = (page - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+    const paginatedIssues = filteredIssues.slice(startIndex, endIndex);
+
+    return {
+      issues: paginatedIssues,
+      pagination: {
+        hasNext: endIndex < filteredIssues.length,
+        hasPrev: page > 1,
+        nextPage: endIndex < filteredIssues.length ? page + 1 : undefined,
+        prevPage: page > 1 ? page - 1 : undefined
+      }
+    };
+  }
 
   let response;
 

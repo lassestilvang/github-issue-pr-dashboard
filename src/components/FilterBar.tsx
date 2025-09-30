@@ -5,6 +5,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Combobox } from "@/components/ui/combobox";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
@@ -80,22 +81,13 @@ export default function FilterBar({
         </div>
         <div className="flex flex-col">
           <label className="text-sm font-medium">Repository</label>
-          <Select
+          <Combobox
+            options={[{ value: "all", label: "All" }, ...repos.map((repo) => ({ value: repo, label: repo }))]}
             value={filters.repo}
             onValueChange={(value) => setFilters({ ...filters, repo: value, page: 1 })}
-          >
-            <SelectTrigger className="w-full md:w-[180px]">
-              <SelectValue placeholder="Repository" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All</SelectItem>
-              {repos.map((repo) => (
-                <SelectItem key={repo} value={repo}>
-                  {repo}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            placeholder="Repository"
+            className="w-full md:w-[180px]"
+          />
         </div>
         <div className="flex flex-col">
           <label className="text-sm font-medium">Type</label>

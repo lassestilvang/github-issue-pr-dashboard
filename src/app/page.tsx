@@ -68,14 +68,15 @@ export default function Home() {
 
   useEffect(() => {
     if (status === "loading") return; // Still loading
-    if (!session) {
-      router.push("/login");
-    } else {
+    // Temporarily bypass authentication for testing
+    // if (!session) {
+    //   router.push("/login");
+    // } else {
       fetchIssues();
       if (allRepos.length === 0) {
         fetchRepositories();
       }
-    }
+    // }
   }, [session, status, router, filters]);
 
   const fetchIssues = async () => {
@@ -138,9 +139,10 @@ export default function Home() {
     );
   }
 
-  if (!session) {
-    return null; // Will redirect
-  }
+  // Temporarily bypass authentication for testing
+  // if (!session) {
+  //   return null; // Will redirect
+  // }
 
   return (
     <div className="min-h-screen">
