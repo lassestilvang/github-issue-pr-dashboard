@@ -10,6 +10,7 @@ export interface IssuePR {
   type: 'issue' | 'pull_request';
   html_url: string;
 }
+
 export async function fetchUserRepositories(token: string): Promise<string[]> {
   const octokit = new Octokit({ auth: token });
 
@@ -23,45 +24,74 @@ export async function fetchUserRepositories(token: string): Promise<string[]> {
 }
 
 
-export async function fetchUserIssues(token: string, filters?: { status?: string; role?: string; repo?: string; page?: number; type?: string }): Promise<{ issues: IssuePR[], pagination: { hasNext: boolean, hasPrev: boolean, nextPage?: number, prevPage?: number } }> {
+export async function fetchUserIssues(token: string, filters?: { status?: string; role?: string; repo?: string; page?: number; type?: string; user?: string }): Promise<{ issues: IssuePR[], pagination: { hasNext: boolean, hasPrev: boolean, nextPage?: number, prevPage?: number } }> {
   const octokit = new Octokit({ auth: token });
 
-  const { status, role, repo, page = 1, type } = filters || {};
+  const { status, role, repo, page = 1, type, user } = filters || {};
 
-  let filter = 'all';
-  if (role === 'created') filter = 'created';
-  else if (role === 'assigned') filter = 'assigned';
+  let response;
 
-  let state = 'all';
-  if (status === 'open') state = 'open';
-  else if (status === 'closed') state = 'closed';
+  if (repo && repo !== 'all') {
+    // Get user login
+    const userResponse = await octokit.users.getAuthenticated();
+    const login = userResponse.data.login;
+    // Use search API for repo filtering
+    let q = `repo:${login}/${repo} `;
+    if (role === 'created') {
+      q += 'author:@me ';
+    } else if (role === 'assigned') {
+      q += 'assignee:@me ';
+    }
+    if (type === 'pull_request') {
+      q += 'is:pr ';
+    } else if (type === 'issue') {
+      q += 'is:issue ';
+    }
+    if (status === 'open') {
+      q += 'is:open ';
+    } else if (status === 'closed') {
+      q += 'is:closed ';
+    }
+    response = await octokit.search.issuesAndPullRequests({
+      q: q.trim(),
+      per_page: 30,
+      page
+    });
+  } else {
+    // Use list API for no repo filter
+    let filter = 'all';
+    if (role === 'created') filter = 'created';
+    else if (role === 'assigned') filter = 'assigned';
 
-  const response = await octokit.issues.listForAuthenticatedUser({
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    filter: filter as any,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    state: state as any,
-    per_page: 30,
-    page
-  });
+    let state = 'all';
+    if (status === 'open') state = 'open';
+    else if (status === 'closed') state = 'closed';
 
-  let issues = response.data.map(issue => ({
-    repository: issue.repository!.name,
-    title: issue.title,
-    labels: issue.labels.map(label => typeof label === 'string' ? label : (label.name || 'unknown')),
-    status: issue.state,
-    createdAt: issue.created_at,
-    updatedAt: issue.updated_at,
+    response = await octokit.issues.listForAuthenticatedUser({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      filter: filter as any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      state: state as any,
+      per_page: 30,
+      page
+    });
+  }
+
+  const data = repo && repo !== 'all' ? (response.data as any).items : response.data;
+
+  let issues = data.map((issue: any) => ({
+    repository: issue.repository?.name || 'unknown',
+    title: issue.title || 'No title',
+    labels: (issue.labels || []).map((label: any) => typeof label === 'string' ? label : (label.name || 'unknown')),
+    status: issue.state || 'unknown',
+    createdAt: issue.created_at || '',
+    updatedAt: issue.updated_at || '',
     type: (issue.pull_request ? 'pull_request' : 'issue') as 'issue' | 'pull_request',
-    html_url: issue.html_url
+    html_url: issue.html_url || ''
   }));
 
   if (type && type !== 'all') {
-    issues = issues.filter(issue => issue.type === type);
-  }
-
-  if (repo && repo !== 'all') {
-    issues = issues.filter(issue => issue.repository === repo);
+    issues = issues.filter((issue: any) => issue.type === type);
   }
 
   // Parse Link header for pagination

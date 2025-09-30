@@ -41,7 +41,7 @@ export default function FilterBar({
         <Input
           placeholder="Search issues/PRs..."
           value={filters.search}
-          onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+          onChange={(e) => setFilters({ ...filters, search: e.target.value, page: 1 })}
           className="pl-8 w-full md:w-[250px]"
         />
       </div>
@@ -50,7 +50,7 @@ export default function FilterBar({
           <label className="text-sm font-medium">Status</label>
           <Select
             value={filters.status}
-            onValueChange={(value) => setFilters({ ...filters, status: value })}
+            onValueChange={(value) => setFilters({ ...filters, status: value, page: 1 })}
           >
             <SelectTrigger className="w-full md:w-[180px]">
               <SelectValue placeholder="Status" />
@@ -66,7 +66,7 @@ export default function FilterBar({
           <label className="text-sm font-medium">Role</label>
           <Select
             value={filters.role}
-            onValueChange={(value) => setFilters({ ...filters, role: value })}
+            onValueChange={(value) => setFilters({ ...filters, role: value, page: 1 })}
           >
             <SelectTrigger className="w-full md:w-[180px]">
               <SelectValue placeholder="Role" />
@@ -82,7 +82,7 @@ export default function FilterBar({
           <label className="text-sm font-medium">Repository</label>
           <Select
             value={filters.repo}
-            onValueChange={(value) => setFilters({ ...filters, repo: value })}
+            onValueChange={(value) => setFilters({ ...filters, repo: value, page: 1 })}
           >
             <SelectTrigger className="w-full md:w-[180px]">
               <SelectValue placeholder="Repository" />
@@ -101,7 +101,7 @@ export default function FilterBar({
           <label className="text-sm font-medium">Type</label>
           <Select
             value={filters.type}
-            onValueChange={(value) => setFilters({ ...filters, type: value })}
+            onValueChange={(value) => setFilters({ ...filters, type: value, page: 1 })}
           >
             <SelectTrigger className="w-full md:w-[180px]">
               <SelectValue placeholder="Type" />

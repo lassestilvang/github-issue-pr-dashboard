@@ -16,9 +16,10 @@ export async function GET(request: Request) {
   const page = url.searchParams.get('page') || '1'
 
   try {
-    const result = await fetchUserIssues(session.accessToken as string, { status, role, repo, type, page: parseInt(page) })
+    const result = await fetchUserIssues(session.accessToken as string, { status, role, repo, type, page: parseInt(page), user: session.user?.login })
     return Response.json(result)
   } catch (error) {
+    console.error('Error fetching issues:', error)
     return Response.json({ error: 'Failed to fetch issues' }, { status: 500 })
   }
 }
