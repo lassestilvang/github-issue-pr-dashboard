@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { GitPullRequest, FileText } from "lucide-react";
 
 interface IssuePR {
+  owner: string;
   repository: string;
   title: string;
   labels: string[];
@@ -11,6 +12,8 @@ interface IssuePR {
   updatedAt: string;
   type: 'issue' | 'pull_request';
   html_url: string;
+  author: { login: string; html_url: string };
+  assignee?: { login: string; html_url: string };
 }
 
 interface IssueCardProps {
@@ -24,9 +27,14 @@ export default function IssueCard({ issue }: IssueCardProps) {
     <Card className="w-full">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-sm font-medium text-muted-foreground">
+          <a
+            href={`https://github.com/${issue.owner}/${issue.repository}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-sm font-medium text-muted-foreground hover:underline"
+          >
             {issue.repository}
-          </CardTitle>
+          </a>
           <div className="flex items-center gap-2">
             {isPR ? <GitPullRequest className="h-4 w-4" /> : <FileText className="h-4 w-4" />}
             <Badge variant={issue.status === 'open' ? 'default' : 'secondary'}>
@@ -52,8 +60,32 @@ export default function IssueCard({ issue }: IssueCardProps) {
           ))}
         </div>
         <div className="text-sm text-muted-foreground mt-2">
-          <p>Created: {new Date(issue.createdAt).toLocaleDateString()}</p>
-          <p>Updated: {new Date(issue.updatedAt).toLocaleDateString()}</p>
+          <table className="w-full">
+            <tbody>
+              <tr>
+                <td className="pr-2 font-medium">Created:</td>
+                <td>{new Date(issue.createdAt).toLocaleDateString()}</td>
+              </tr>
+              <tr>
+                <td className="pr-2 font-medium">Updated:</td>
+                <td>{new Date(issue.updatedAt).toLocaleDateString()}</td>
+              </tr>
+              <tr>
+                <td className="pr-2 font-medium">Author:</td>
+                <td>
+                  <a href={issue.author.html_url} target="_blank" rel="noopener noreferrer" className="hover:underline">{issue.author.login}</a>
+                </td>
+              </tr>
+              {issue.assignee && (
+                <tr>
+                  <td className="pr-2 font-medium">Assignee:</td>
+                  <td>
+                    <a href={issue.assignee.html_url} target="_blank" rel="noopener noreferrer" className="hover:underline">{issue.assignee.login}</a>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
       </CardContent>
     </Card>

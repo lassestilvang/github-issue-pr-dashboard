@@ -10,9 +10,12 @@ interface GitHubIssue {
   html_url?: string;
   repository?: { name?: string };
   repository_url?: string;
+  user?: { login?: string; html_url?: string };
+  assignees?: { login?: string; html_url?: string }[];
 }
 
 export interface IssuePR {
+  owner: string;
   repository: string;
   title: string;
   labels: string[];
@@ -21,9 +24,11 @@ export interface IssuePR {
   updatedAt: string;
   type: "issue" | "pull_request";
   html_url: string;
+  author: { login: string; html_url: string };
+  assignee?: { login: string; html_url: string };
 }
 
-export async function fetchUserRepositories(token: string): Promise<string[]> {
+export async function fetchUserRepositories(token: string | undefined): Promise<string[]> {
   // Mock data for testing
   if (!token || token === process.env.GITHUB_CLIENT_SECRET) {
     return [
@@ -52,7 +57,7 @@ export async function fetchUserRepositories(token: string): Promise<string[]> {
 }
 
 export async function fetchUserIssues(
-  token: string,
+  token: string | undefined,
   filters?: {
     status?: string;
     role?: string;
@@ -84,10 +89,15 @@ export async function fetchUserIssues(
     search,
   } = filters || {};
 
+  let login = "";
+  const isMock = !token || token === process.env.GITHUB_CLIENT_SECRET;
+
   // Mock data for testing
-  if (!token || token === process.env.GITHUB_CLIENT_SECRET) {
+  if (isMock) {
+    login = "test";
     const mockIssues: IssuePR[] = [
       {
+        owner: "test",
         repository: "github-issue-pr-dashboard",
         title: "Add search functionality to repository dropdown",
         labels: ["enhancement", "frontend"],
@@ -96,8 +106,11 @@ export async function fetchUserIssues(
         updatedAt: "2024-01-15T10:00:00Z",
         type: "issue",
         html_url: "https://github.com/test/repo/issues/1",
+        author: { login: "johndoe", html_url: "https://github.com/johndoe" },
+        assignee: { login: "janedoe", html_url: "https://github.com/janedoe" },
       },
       {
+        owner: "test",
         repository: "react-app",
         title: "Fix responsive layout on mobile devices",
         labels: ["bug", "mobile"],
@@ -106,8 +119,10 @@ export async function fetchUserIssues(
         updatedAt: "2024-01-14T09:30:00Z",
         type: "issue",
         html_url: "https://github.com/test/repo/issues/2",
+        author: { login: "alice", html_url: "https://github.com/alice" },
       },
       {
+        owner: "test",
         repository: "node-api",
         title: "Implement authentication middleware",
         labels: ["feature", "backend"],
@@ -116,8 +131,11 @@ export async function fetchUserIssues(
         updatedAt: "2024-01-13T16:45:00Z",
         type: "pull_request",
         html_url: "https://github.com/test/repo/pull/3",
+        author: { login: "bob", html_url: "https://github.com/bob" },
+        assignee: { login: "charlie", html_url: "https://github.com/charlie" },
       },
       {
+        owner: "test",
         repository: "vue-dashboard",
         title: "Update chart library to latest version",
         labels: ["maintenance", "dependencies"],
@@ -126,6 +144,7 @@ export async function fetchUserIssues(
         updatedAt: "2024-01-12T11:15:00Z",
         type: "issue",
         html_url: "https://github.com/test/repo/issues/4",
+        author: { login: "diana", html_url: "https://github.com/diana" },
       },
     ];
 
@@ -172,15 +191,13 @@ export async function fetchUserIssues(
     };
   }
 
+  // Real API
+  const userResponse = await octokit.users.getAuthenticated();
+  login = userResponse.data.login;
+
   let response;
 
   if (search || (repo && repo !== "all")) {
-    // Get user login if needed
-    let login = "";
-    if (search || (repo && repo !== "all")) {
-      const userResponse = await octokit.users.getAuthenticated();
-      login = userResponse.data.login;
-    }
     // Use search API
     let q = "";
     if (search) {
@@ -237,14 +254,20 @@ export async function fetchUserIssues(
       : (response.data as GitHubIssue[]);
 
   let issues = data.map((issue: GitHubIssue) => {
+    let owner = login;
+    if (issue.repository_url) {
+      const parts = issue.repository_url.split('/');
+      owner = parts[parts.length - 2];
+    }
     const repoName =
       repo && repo !== "all"
         ? repo
         : issue.repository?.name ||
           (issue.repository_url
             ? issue.repository_url.split("/").pop()
-            : "unknown");
+            : "unknown") || "unknown";
     return {
+      owner,
       repository: repoName,
       title: issue.title || "No title",
       labels: (issue.labels || []).map((label: string | { name?: string }) =>
@@ -257,6 +280,14 @@ export async function fetchUserIssues(
         | "issue"
         | "pull_request",
       html_url: issue.html_url || "",
+      author: {
+        login: issue.user?.login || "unknown",
+        html_url: issue.user?.html_url || "",
+      },
+      assignee: issue.assignees && issue.assignees.length > 0 ? {
+        login: issue.assignees[0].login || "unknown",
+        html_url: issue.assignees[0].html_url || "",
+      } : undefined,
     };
   });
 

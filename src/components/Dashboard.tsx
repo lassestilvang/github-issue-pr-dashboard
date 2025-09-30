@@ -1,16 +1,6 @@
 import IssueCard from "./IssueCard";
 import IssueCardSkeleton from "./IssueCardSkeleton";
-
-interface IssuePR {
-  repository: string;
-  title: string;
-  labels: string[];
-  status: string;
-  createdAt: string;
-  updatedAt: string;
-  type: "issue" | "pull_request";
-  html_url: string;
-}
+import { IssuePR } from "@/lib/github";
 
 interface DashboardProps {
   issues: IssuePR[];
