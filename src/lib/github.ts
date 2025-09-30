@@ -1,5 +1,16 @@
 import { Octokit } from "@octokit/rest";
 
+interface GitHubIssue {
+  title?: string;
+  labels?: (string | { name?: string })[];
+  state?: string;
+  created_at?: string;
+  updated_at?: string;
+  pull_request?: unknown;
+  html_url?: string;
+  repository?: { name?: string };
+}
+
 export interface IssuePR {
   repository: string;
   title: string;
@@ -43,7 +54,7 @@ export async function fetchUserRepositories(token: string): Promise<string[]> {
 export async function fetchUserIssues(token: string, filters?: { status?: string; role?: string; repo?: string; page?: number; type?: string; user?: string }): Promise<{ issues: IssuePR[], pagination: { hasNext: boolean, hasPrev: boolean, nextPage?: number, prevPage?: number } }> {
   const octokit = new Octokit({ auth: token });
 
-  const { status, role, repo, page = 1, type, user } = filters || {};
+  const { status, role, repo, page = 1, type } = filters || {};
 
   // Mock data for testing
   if (process.env.NODE_ENV === 'development' && !token.startsWith('ghp_')) {
@@ -167,12 +178,12 @@ export async function fetchUserIssues(token: string, filters?: { status?: string
     });
   }
 
-  const data = repo && repo !== 'all' ? (response.data as any).items : response.data;
+  const data: GitHubIssue[] = repo && repo !== 'all' ? (response.data as { items: GitHubIssue[] }).items : response.data as GitHubIssue[];
 
-  let issues = data.map((issue: any) => ({
+  let issues = data.map((issue: GitHubIssue) => ({
     repository: repo && repo !== 'all' ? repo : (issue.repository?.name || 'unknown'),
     title: issue.title || 'No title',
-    labels: (issue.labels || []).map((label: any) => typeof label === 'string' ? label : (label.name || 'unknown')),
+    labels: (issue.labels || []).map((label: string | { name?: string }) => typeof label === 'string' ? label : (label.name || 'unknown')),
     status: issue.state || 'unknown',
     createdAt: issue.created_at || '',
     updatedAt: issue.updated_at || '',
@@ -181,7 +192,7 @@ export async function fetchUserIssues(token: string, filters?: { status?: string
   }));
 
   if (type && type !== 'all') {
-    issues = issues.filter((issue: any) => issue.type === type);
+    issues = issues.filter((issue: IssuePR) => issue.type === type);
   }
 
   // Parse Link header for pagination

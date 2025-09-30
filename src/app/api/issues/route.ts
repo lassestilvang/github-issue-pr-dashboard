@@ -1,4 +1,3 @@
-import { auth } from "@/lib/auth"
 import { fetchUserIssues } from "@/lib/github"
 
 export async function GET(request: Request) {

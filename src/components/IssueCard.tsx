@@ -19,7 +19,6 @@ interface IssueCardProps {
 
 export default function IssueCard({ issue }: IssueCardProps) {
   const isPR = issue.type === 'pull_request';
-  const statusColor = issue.status === 'open' ? 'bg-green-500' : 'bg-red-500';
 
   return (
     <Card className="w-full">

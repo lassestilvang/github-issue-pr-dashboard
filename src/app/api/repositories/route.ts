@@ -1,4 +1,3 @@
-import { auth } from "@/lib/auth"
 import { fetchUserRepositories } from "@/lib/github"
 
 export async function GET() {
@@ -14,7 +13,7 @@ export async function GET() {
   try {
     const repositories = await fetchUserRepositories(session.accessToken as string)
     return Response.json({ repositories })
-  } catch (error) {
+  } catch {
     return Response.json({ error: 'Failed to fetch repositories' }, { status: 500 })
   }
 }

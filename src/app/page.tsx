@@ -35,7 +35,6 @@ export default function Home() {
     type: "all",
   });
   const [allRepos, setAllRepos] = useState<string[]>([]);
-  const [repos, setRepos] = useState<string[]>([]);
   const [pagination, setPagination] = useState<{
     hasNext: boolean;
     hasPrev: boolean;
@@ -66,20 +65,7 @@ export default function Home() {
     router.replace(newUrl, { scroll: false });
   }, [filters.status, filters.role, filters.repo, filters.type, router]);
 
-  useEffect(() => {
-    if (status === "loading") return; // Still loading
-    // Temporarily bypass authentication for testing
-    // if (!session) {
-    //   router.push("/login");
-    // } else {
-      fetchIssues();
-      if (allRepos.length === 0) {
-        fetchRepositories();
-      }
-    // }
-  }, [session, status, router, filters]);
-
-  const fetchIssues = async () => {
+  const fetchIssues = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -104,9 +90,9 @@ export default function Home() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters]);
 
-  const fetchRepositories = async () => {
+  const fetchRepositories = useCallback(async () => {
     try {
       const response = await fetch("/api/repositories");
       if (response.ok) {
@@ -118,7 +104,20 @@ export default function Home() {
     } catch (error) {
       console.error("Failed to fetch repositories:", error);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (status === "loading") return; // Still loading
+    // Temporarily bypass authentication for testing
+    // if (!session) {
+    //   router.push("/login");
+    // } else {
+      fetchIssues();
+      if (allRepos.length === 0) {
+        fetchRepositories();
+      }
+    // }
+  }, [session, status, router, filters, allRepos.length, fetchIssues, fetchRepositories]);
 
   const filteredIssues = useMemo(() => {
     return issues.filter((issue) =>
