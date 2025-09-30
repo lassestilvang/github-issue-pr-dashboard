@@ -1,6 +1,7 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import { Providers } from "./providers";
 import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 import "./globals.css";
 import { StrictMode } from "react";
 
@@ -27,6 +28,7 @@ export default function RootLayout({
         <Providers>
           <Header />
           {children}
+          <Footer />
         </Providers>
       </body>
     </html>

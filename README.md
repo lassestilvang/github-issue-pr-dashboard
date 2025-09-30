@@ -40,7 +40,7 @@ Built with **Next.js + Tailwind CSS** and GitHub OAuth.
 ### 1. Clone the Repository
 
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/lassestilvang/github-issue-pr-dashboard.git
 cd github-issue-pr-dashboard
 ```
 
@@ -90,7 +90,11 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) in your browser. You should be able to log in with GitHub and view your issues/PRs.
 
-### 6. Deploy to Vercel
+### 6.a Deploy to Vercel (One-Click Deployment)
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/lassestilvang/github-issue-pr-dashboard)
+
+### 6.b Deploy to Vercel (Manual Steps)
 
 1. **Push to GitHub:**
 
@@ -141,9 +145,3 @@ Your app should now be live at `https://your-app.vercel.app`.
 - 📄 Pagination or infinite scroll
 - 🌙 Dark mode toggle
 - 📊 Analytics integration
-
----
-
-## 📜 License
-
-MIT

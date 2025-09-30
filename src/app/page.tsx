@@ -2,7 +2,7 @@
 
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState, useMemo, useCallback, useRef } from "react";
+import { useEffect, useState, useMemo, useCallback, useRef, Suspense } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Dashboard from "@/components/Dashboard";
 import FilterBar from "@/components/FilterBar";
@@ -19,7 +19,7 @@ interface ApiResponse {
   };
 }
 
-export default function Home() {
+function HomeContent() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -199,5 +199,17 @@ export default function Home() {
         </>
       )}
     </div>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
+      </div>
+    }>
+      <HomeContent />
+    </Suspense>
   );
 }
