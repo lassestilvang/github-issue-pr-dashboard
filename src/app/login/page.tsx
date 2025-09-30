@@ -1,9 +1,23 @@
 "use client";
 
-import { signIn } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 
 export default function LoginPage() {
+  const { data: session, status } = useSession();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (status === "authenticated" && session) {
+      router.push("/");
+    }
+  }, [session, status, router]);
+
+  if (status === "loading") {
+    return <div>Loading...</div>;
+  }
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="max-w-md w-full space-y-8">
