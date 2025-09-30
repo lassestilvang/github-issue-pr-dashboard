@@ -25,6 +25,22 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
     async session({ session, token }) {
       session.accessToken = token.accessToken as string
+      // Fetch GitHub user login if not already present
+      if (token.accessToken && !session.user?.login) {
+        try {
+          const response = await fetch('https://api.github.com/user', {
+            headers: {
+              Authorization: `Bearer ${token.accessToken}`,
+            },
+          })
+          if (response.ok) {
+            const userData = await response.json()
+            session.user.login = userData.login
+          }
+        } catch (error) {
+          console.error('Failed to fetch GitHub user data:', error)
+        }
+      }
       return session
     },
   },

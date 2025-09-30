@@ -33,6 +33,7 @@ export default function Home() {
     search: "",
     page: 1,
     type: "all",
+    pageSize: 30,
   });
   const [allRepos, setAllRepos] = useState<string[]>([]);
   const [pagination, setPagination] = useState<{

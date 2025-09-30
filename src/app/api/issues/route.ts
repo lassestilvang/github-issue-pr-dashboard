@@ -16,9 +16,10 @@ export async function GET(request: Request) {
   const repo = url.searchParams.get('repo') || undefined
   const type = url.searchParams.get('type') || undefined
   const page = url.searchParams.get('page') || '1'
+  const pageSize = url.searchParams.get('pageSize') || '30'
 
   try {
-    const result = await fetchUserIssues(session.accessToken as string, { status, role, repo, type, page: parseInt(page), user: session.user?.login })
+    const result = await fetchUserIssues(session.accessToken as string, { status, role, repo, type, page: parseInt(page), pageSize: parseInt(pageSize), user: session.user?.login })
     return Response.json(result)
   } catch (error) {
     console.error('Error fetching issues:', error)

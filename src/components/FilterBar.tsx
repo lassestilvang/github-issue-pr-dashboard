@@ -8,7 +8,7 @@ import {
 import { Combobox } from "@/components/ui/combobox";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search } from "lucide-react";
+import { Search, Filter } from "lucide-react";
 
 interface FilterBarProps {
   filters: {
@@ -18,6 +18,7 @@ interface FilterBarProps {
     search: string;
     page: number;
     type: string;
+    pageSize: number;
   };
   setFilters: (filters: {
     status: string;
@@ -26,6 +27,7 @@ interface FilterBarProps {
     search: string;
     page: number;
     type: string;
+    pageSize: number;
   }) => void;
   repos: string[];
 }
@@ -36,7 +38,7 @@ export default function FilterBar({
   repos,
 }: FilterBarProps) {
   return (
-    <div className="flex flex-col gap-4 p-4 border-b md:flex-row md:items-center md:gap-4">
+    <div className="flex flex-col gap-4 p-4 border-b">
       <div className="relative mt-4.5">
         <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
         <Input
@@ -46,9 +48,9 @@ export default function FilterBar({
           className="pl-8 w-full md:w-[250px]"
         />
       </div>
-      <div className="flex flex-col gap-2 md:flex-row md:gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
         <div className="flex flex-col">
-          <label className="text-sm font-medium">Status</label>
+          <label className="text-sm font-medium flex items-center gap-1"><Filter className="h-4 w-4" />Status</label>
           <Select
             value={filters.status}
             onValueChange={(value) => setFilters({ ...filters, status: value, page: 1 })}
@@ -64,7 +66,7 @@ export default function FilterBar({
           </Select>
         </div>
         <div className="flex flex-col">
-          <label className="text-sm font-medium">Role</label>
+          <label className="text-sm font-medium flex items-center gap-1"><Filter className="h-4 w-4" />Role</label>
           <Select
             value={filters.role}
             onValueChange={(value) => setFilters({ ...filters, role: value, page: 1 })}
@@ -80,7 +82,7 @@ export default function FilterBar({
           </Select>
         </div>
         <div className="flex flex-col">
-          <label className="text-sm font-medium">Repository</label>
+          <label className="text-sm font-medium flex items-center gap-1"><Filter className="h-4 w-4" />Repository</label>
           <Combobox
             options={[{ value: "all", label: "All" }, ...repos.map((repo) => ({ value: repo, label: repo }))]}
             value={filters.repo}
@@ -90,7 +92,7 @@ export default function FilterBar({
           />
         </div>
         <div className="flex flex-col">
-          <label className="text-sm font-medium">Type</label>
+          <label className="text-sm font-medium flex items-center gap-1"><Filter className="h-4 w-4" />Type</label>
           <Select
             value={filters.type}
             onValueChange={(value) => setFilters({ ...filters, type: value, page: 1 })}
@@ -105,23 +107,43 @@ export default function FilterBar({
             </SelectContent>
           </Select>
         </div>
-      </div>
-      <div className="mt-2 md:mt-4.5">
-        <Button
-          variant="outline"
-          onClick={() =>
-            setFilters({
-              status: "all",
-              role: "all",
-              repo: "all",
-              search: "",
-              page: 1,
-              type: "all",
-            })
-          }
-        >
-          Clear Filters
-        </Button>
+        <div className="flex flex-col">
+          <label className="text-sm font-medium flex items-center gap-1"><Filter className="h-4 w-4" />Page Size</label>
+          <Select
+            value={filters.pageSize.toString()}
+            onValueChange={(value) => setFilters({ ...filters, pageSize: parseInt(value), page: 1 })}
+          >
+            <SelectTrigger className="w-full md:w-[180px]">
+              <SelectValue placeholder="Page Size" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="10">10</SelectItem>
+              <SelectItem value="20">20</SelectItem>
+              <SelectItem value="30">30</SelectItem>
+              <SelectItem value="50">50</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex flex-col">
+          <label className="text-sm font-medium flex items-center gap-1"><Filter className="h-4 w-4" />Actions</label>
+          <Button
+            variant="outline"
+            className="w-full md:w-[180px] px-3 py-2 text-sm sm:px-4 sm:py-2 sm:text-base"
+            onClick={() =>
+              setFilters({
+                status: "all",
+                role: "all",
+                repo: "all",
+                search: "",
+                page: 1,
+                type: "all",
+                pageSize: 30,
+              })
+            }
+          >
+            Clear Filters
+          </Button>
+        </div>
       </div>
     </div>
   );

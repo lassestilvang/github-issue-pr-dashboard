@@ -51,10 +51,10 @@ export async function fetchUserRepositories(token: string): Promise<string[]> {
 }
 
 
-export async function fetchUserIssues(token: string, filters?: { status?: string; role?: string; repo?: string; page?: number; type?: string; user?: string }): Promise<{ issues: IssuePR[], pagination: { hasNext: boolean, hasPrev: boolean, nextPage?: number, prevPage?: number } }> {
+export async function fetchUserIssues(token: string, filters?: { status?: string; role?: string; repo?: string; page?: number; pageSize?: number; type?: string; user?: string }): Promise<{ issues: IssuePR[], pagination: { hasNext: boolean, hasPrev: boolean, nextPage?: number, prevPage?: number } }> {
   const octokit = new Octokit({ auth: token });
 
-  const { status, role, repo, page = 1, type } = filters || {};
+  const { status, role, repo, page = 1, pageSize = 30, type } = filters || {};
 
   // Mock data for testing
   if (process.env.NODE_ENV === 'development' && !token.startsWith('ghp_')) {
@@ -114,7 +114,6 @@ export async function fetchUserIssues(token: string, filters?: { status?: string
     }
 
     // Simple pagination
-    const pageSize = 30;
     const startIndex = (page - 1) * pageSize;
     const endIndex = startIndex + pageSize;
     const paginatedIssues = filteredIssues.slice(startIndex, endIndex);
@@ -155,7 +154,7 @@ export async function fetchUserIssues(token: string, filters?: { status?: string
     }
     response = await octokit.search.issuesAndPullRequests({
       q: q.trim(),
-      per_page: 30,
+      per_page: pageSize,
       page
     });
   } else {
@@ -173,7 +172,7 @@ export async function fetchUserIssues(token: string, filters?: { status?: string
       filter: filter as any,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       state: state as any,
-      per_page: 30,
+      per_page: pageSize,
       page
     });
   }

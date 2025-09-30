@@ -33,13 +33,18 @@ export default function Header() {
               </div>
             ) : session ? (
               <div className="flex items-center space-x-4">
-                <div className="flex items-center space-x-2">
+                <a
+                  href={`https://github.com/${session.user?.login || ''}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
+                >
                   <Avatar>
                     <AvatarImage src={session.user?.image || ""} alt={session.user?.name || ""} />
                     <AvatarFallback>{session.user?.name?.charAt(0) || "U"}</AvatarFallback>
                   </Avatar>
                   <span className="text-sm font-medium text-muted-foreground">{session.user?.name}</span>
-                </div>
+                </a>
                 <Button onClick={() => signOut()} variant="outline" size="sm">
                   Logout
                 </Button>
