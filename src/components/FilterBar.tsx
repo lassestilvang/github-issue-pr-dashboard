@@ -36,7 +36,7 @@ export default function FilterBar({
 }: FilterBarProps) {
   return (
     <div className="flex flex-col gap-4 p-4 border-b md:flex-row md:items-center md:gap-4">
-      <div className="relative">
+      <div className="relative mt-4.5">
         <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
         <Input
           placeholder="Search issues/PRs..."

@@ -86,6 +86,7 @@ export default function Home() {
 
   const handlePageChange = (newPage: number) => {
     setFilters({ ...filters, page: newPage });
+    window.scrollTo(0, 0);
   };
 
   if (status === "loading") {
